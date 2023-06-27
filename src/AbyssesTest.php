@@ -1,8 +1,8 @@
 <?php
 
-namespace Biigle\Modules\Abysses;
+namespace Biigle\Modules\abysses;
 
-use Biigle\Modules\Abysses\DataBase\Factories\AbyssesTestFactory;
+use Biigle\Modules\abysses\DataBase\Factories\AbyssesTestFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -26,6 +26,6 @@ class AbyssesTest extends Model
     
     protected static function newFactory()
     {
-        return TrainingProposalFactory::new();
+        return AbyssesTestFactory::new();
     }
 }

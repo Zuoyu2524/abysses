@@ -6,7 +6,6 @@ use Biigle\Modules\abysses\AbyssesTrain;
 use Biigle\Modules\abysses\AbyssesJob;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Biigle\Image;
-use Biigle\Modules\Abysses\AbyssesJob;
 
 
 class AbyssesTrainFactory extends Factory

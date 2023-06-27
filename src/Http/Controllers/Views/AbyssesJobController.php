@@ -95,16 +95,51 @@ class AbyssesJobController extends Controller
             }
             
             $name = 'Abysses';
-            
-            $labels = LabelTree::select('id', 'version_id')
-                ->with('labels', 'version')
-                ->where('name', $name)
+
+            $results = DB::table('labels AS l1')
+            ->select('l1.id', 'l1.name', 'l2.name AS parent_name')
+            ->join('label_trees', 'l1.label_tree_id', '=', 'label_trees.id')
+            ->join('labels AS l2', 'l1.parent_id', '=', 'l2.id')
+            ->where('label_trees.name', 'Abysses')
+            ->whereNotNull('l1.parent_id')
+            ->get();
+                
+            $images = Image::select('id', 'filename')
+                ->where('volume_id', $volume->id)
                 ->get();
+            
+            $imagesArray = json_decode($images, true);
+            $imageurl = array();
+
+            $i=0;
+            foreach ($imagesArray as $image) {
+                $id = $image['id'];
+                $imageurl[$i] = 'api/v1/images/' . $id . '/file';
+                $i++;
+            }
+
+            $i=0;
+            $labels = array();
+            $results = json_decode($results, true);
+            foreach ($results as $label) {
+                $key = $label["parent_name"];
+                $value = $label["name"];
+                if (array_key_exists($key, $labels)) {
+                    $labels[$key][] = $value;
+                } else {
+                    $labels[$key] = [$value];
+                }
+            }            
         }
         else
         {
             $labels = collect([]);
+
+            $images = collect([]);
+
+            $imageurl = collect([]);
         }
+        
         
         $tpUrlTemplate = Storage::disk(config('abysses.training_proposal_storage_disk'))
             ->url(':prefix/:id.'.config('largo.patch_format'));   
@@ -118,6 +153,8 @@ class AbyssesJobController extends Controller
             'volume',
             'states',
             'labels',
+            'images',
+            'imageurl',
             'tpUrlTemplate',
             'tpLimit',
             'maintenanceMode'

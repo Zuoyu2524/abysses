@@ -17,7 +17,7 @@ class AbyssesJob extends Model
 
     /**
      * The attributes that should be casted to native types.
-     B
+     
      * @var array
      */
     protected $casts = [

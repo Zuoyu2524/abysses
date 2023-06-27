@@ -8,7 +8,7 @@ use Biigle\Image;
 use Biigle\Modules\Abysses\AbyssesJob;
 
 
-class AbyssesTrain extends Factory
+class AbyssesTrainFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.

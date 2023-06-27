@@ -30,11 +30,6 @@ class AbyssesTrain extends Model
     
     protected static function newFactory()
     {
-        return TrainingProposalFactory::new();
-    }
-    
-        protected static function newFactory()
-    {
         return AbyssesTrainFactory::new();
     }
 }

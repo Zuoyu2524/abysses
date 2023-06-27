@@ -1,14 +1,14 @@
 <?php
 
-namespace Biigle\Modules\Abysses\DataBase\Factories;
+namespace Biigle\Modules\abysses\DataBase\Factories;
 
-use Biigle\Modules\Abysses\AbyssesTest;
+use Biigle\Modules\abysses\abyssesTest;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Biigle\Image;
-use Biigle\Modules\Abysses\AbyssesJob;
+use Biigle\Modules\abysses\AbyssesJob;
 
 
-class AbyssesTest extends Factory
+class AbyssesTestFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.

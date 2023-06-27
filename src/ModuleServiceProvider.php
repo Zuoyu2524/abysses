@@ -1,11 +1,14 @@
 <?php
 
+
 namespace Biigle\Modules\abysses;
 
+use Biigle\Http\Requests\UpdateUserSettings;
 use Biigle\Services\Modules;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Event;
 
 class ModuleServiceProvider extends ServiceProvider
 {
@@ -45,6 +48,8 @@ class ModuleServiceProvider extends ServiceProvider
             'apidoc' => [__DIR__.'/Http/Controllers/Api/'],
         ]);
 
+        Gate::policy(AbyssesJob::class, Policies\AbyssesJobPolicy::class);
+        Gate::policy(TrainingProposal::class, Policies\TrainingProposalPolicy::class);
         
     }
 
