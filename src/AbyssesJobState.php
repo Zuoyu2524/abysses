@@ -27,6 +27,8 @@ class AbyssesJobState extends Model
         'retrainingProposals' => 'retraining-proposals',
         // A failure during novelty test recognition .
         'failedRetrainingProposals' => 'failed-retraining-proposals',
+        // finish all the work with success
+        'success' => 'success',
     ];
 
     /**

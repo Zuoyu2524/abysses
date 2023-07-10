@@ -1,8 +1,8 @@
 <?php
 
-namespace Biigle\Modules\Maia\Console\Commands;
+namespace Biigle\Modules\abysses\Console\Commands;
 
-use Biigle\Modules\Maia\MaiaServiceProvider as ServiceProvider;
+use Biigle\Modules\abysses\AbyssesServiceProvider as ServiceProvider;
 use Illuminate\Console\Command;
 
 class Publish extends Command
@@ -12,7 +12,7 @@ class Publish extends Command
      *
      * @var string
      */
-    protected $name = 'maia:publish';
+    protected $name = 'abysses:publish';
 
     /**
      * The console command description.

@@ -6,7 +6,6 @@
 
 <script>
 export default {
-  mixins: [LoaderMixin],
   data() {
     return {
       title: "Hello Vue",

@@ -1,9 +1,9 @@
 <?php
 
-namespace Biigle\Modules\Maia\Notifications;
+namespace Biigle\Modules\abysses\Notifications;
 
-use Biigle\Modules\Maia\MaiaJob;
-use Biigle\Modules\Maia\MaiaJobState as State;
+use Biigle\Modules\abysses\AbyssesJob;
+use Biigle\Modules\abysses\AbyssesJobState as State;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -12,14 +12,14 @@ class JobStateChanged extends Notification
     /**
      * The job which changed state.
      *
-     * @var MaiaJob
+     * @var AbyssesJob
      */
     protected $job;
 
     /**
      * Create a new notification instance.
      *
-     * @param MaiaJob $job
+     * @param AbyssesJob $job
      * @return void
      */
     public function __construct(MaiaJob $job)
@@ -35,10 +35,10 @@ class JobStateChanged extends Notification
      */
     public function via($notifiable)
     {
-        $settings = config('maia.notifications.default_settings');
+        $settings = config('abysses.notifications.default_settings');
 
-        if (config('maia.notifications.allow_user_settings') === true) {
-            $settings = $notifiable->getSettings('maia_notifications', $settings);
+        if (config('abysses.notifications.allow_user_settings') === true) {
+            $settings = $notifiable->getSettings('abysses_notifications', $settings);
         }
 
         if ($settings === 'web') {
@@ -61,7 +61,7 @@ class JobStateChanged extends Notification
             ->line($this->getMessage($this->job));
 
         if (config('app.url')) {
-            $message = $message->action('Show job', route('maia', $this->job->id));
+            $message = $message->action('Show job', route('abysses', $this->job->id));
         }
 
         return $message;
@@ -82,7 +82,7 @@ class JobStateChanged extends Notification
 
         if (config('app.url')) {
             $array['action'] = 'Show job';
-            $array['actionLink'] = route('maia', $this->job->id);
+            $array['actionLink'] = route('abysses', $this->job->id);
         }
 
         return $array;
@@ -91,22 +91,22 @@ class JobStateChanged extends Notification
     /**
      * Get the title for the state change.
      *
-     * @param MaiaJob $job
+     * @param AbyssesJob $job
      * @return string
      */
     protected function getTitle($job)
     {
-        return 'MAIA job state changed';
+        return 'Abysses job state changed';
     }
 
     /**
      * Get the message for the state change.
      *
-     * @param MaiaJob $job
+     * @param AbyssesJob $job
      * @return string
      */
     protected function getMessage($job)
     {
-        return 'The state of the MAIA job has changed';
+        return 'The state of the Abysses job has changed';
     }
 }

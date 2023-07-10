@@ -30,6 +30,8 @@ class AbyssesJobController extends Controller
      */
     public function index(Request $request, $id)
     {
+        
+        //AbyssesJob::where('volume_id', $id)->delete();
         $volume = Volume::findOrFail($id);
         if (!$request->user()->can('sudo')) {
             $this->authorize('edit-in', $volume);
@@ -56,7 +58,7 @@ class AbyssesJobController extends Controller
                 State::retrainingProposalsId(),
             ])
             ->count() > 0;
-
+        
         $newestJobHasFailed = $jobs->isNotEmpty() ? $jobs[0]->hasFailed() : false;
 
         $maintenanceMode = config('abysses.maintenance_mode');
@@ -71,15 +73,23 @@ class AbyssesJobController extends Controller
         ));
     }
     
-    public function train(Request $request, $id)
+    /**
+     * Show a MAIA job
+     *
+     * @param Request $request
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Request $request, $id)
     {
         $job = AbyssesJob::findOrFail($id);
         $this->authorize('access', $job);
         $volume = $job->volume;
         $states = State::pluck('id', 'name');
-        
+
         $user = $request->user();
-        
+
         if ($job->state_id === State::retrainingProposalsId()) {
             if ($user->can('sudo')) {
                 // Global admins have no restrictions.
@@ -93,71 +103,53 @@ class AbyssesJobController extends Controller
                     Role::adminId(),
                 ])->pluck('id');
             }
-            
-            $name = 'Abysses';
 
+            // All label trees that are used by all projects which are visible to the
+            // user.
             $results = DB::table('labels AS l1')
-            ->select('l1.id', 'l1.name', 'l2.name AS parent_name')
-            ->join('label_trees', 'l1.label_tree_id', '=', 'label_trees.id')
-            ->join('labels AS l2', 'l1.parent_id', '=', 'l2.id')
-            ->where('label_trees.name', 'Abysses')
-            ->whereNotNull('l1.parent_id')
-            ->get();
-                
-            $images = Image::select('id', 'filename')
-                ->where('volume_id', $volume->id)
-                ->get();
-            
-            $imagesArray = json_decode($images, true);
-            $imageurl = array();
+           ->select('l1.id', 'l1.name', 'l2.name AS parent_name')
+           ->join('label_trees', 'l1.label_tree_id', '=', 'label_trees.id')
+           ->join('labels AS l2', 'l1.parent_id', '=', 'l2.id')
+           ->where('label_trees.name', 'Abysses')
+           ->whereNotNull('l1.parent_id')
+           ->get();
 
-            $i=0;
-            foreach ($imagesArray as $image) {
-                $id = $image['id'];
-                $imageurl[$i] = 'api/v1/images/' . $id . '/file';
-                $i++;
-            }
+           $i=0;
+           $labels = array();
+           $results = json_decode($results, true);
+           foreach ($results as $label) {
+               $key = $label["parent_name"];
+               $value = $label["name"];
+               if (array_key_exists($key, $labels)) {
+                   $labels[$key][] = $value;
+               } else {
+                   $labels[$key] = [$value];
+               }
+           }
+           
+           $trees = LabelTree::select('id', 'version_id')
+           ->with('labels', 'version')
+           ->where('name', $name)
+           ->get();
 
-            $i=0;
-            $labels = array();
-            $results = json_decode($results, true);
-            foreach ($results as $label) {
-                $key = $label["parent_name"];
-                $value = $label["name"];
-                if (array_key_exists($key, $labels)) {
-                    $labels[$key][] = $value;
-                } else {
-                    $labels[$key] = [$value];
-                }
-            }            
-        }
-        else
-        {
+
+        } else {
             $labels = collect([]);
-
-            $images = collect([]);
-
-            $imageurl = collect([]);
+            $trees = collect([]);
         }
-        
-        
+
         $tpUrlTemplate = Storage::disk(config('abysses.training_proposal_storage_disk'))
-            ->url(':prefix/:id.'.config('largo.patch_format'));   
-            
-        $tpLimit = config('abysses.training_proposal_limit'); 
-        
-        $maintenanceMode = config('abysses.maintenance_mode');
-        
-        return view('abysses::train', compact(
+            ->url(':prefix/:id.'.config('largo.patch_format'));
+
+        $tpLimit = config('abysses.training_proposal_limit');
+
+        return view('abysses::show', compact(
             'job',
             'volume',
             'states',
-            'labels',
-            'images',
-            'imageurl',
+            'trees',
             'tpUrlTemplate',
-            'tpLimit',
-            'maintenanceMode'
+            'tpLimit'
         ));
     }
 

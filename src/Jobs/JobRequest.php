@@ -1,9 +1,9 @@
 <?php
 
-namespace Biigle\Modules\Maia\Jobs;
+namespace Biigle\Modules\abysses\Jobs;
 
-use Biigle\Modules\Maia\GenericImage;
-use Biigle\Modules\Maia\MaiaJob;
+use Biigle\Modules\abysses\AbyssesJob;
+use Biigle\Modules\abysses\GenericImage;
 use Exception;
 use File;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,7 +15,7 @@ use Queue;
 class JobRequest extends Job implements ShouldQueue
 {
     /**
-     * ID of the MAIA job.
+     * ID of the Abysses job.
      *
      * @var int
      */
@@ -52,9 +52,9 @@ class JobRequest extends Job implements ShouldQueue
     /**
      * Create a new instance
      *
-     * @param MaiaJob $job
+     * @param AbyssesJob $job
      */
-    public function __construct(MaiaJob $job)
+    public function __construct(AbyssesJob $job)
     {
         $this->jobId = $job->id;
         $this->jobParams = $job->params;
@@ -70,7 +70,7 @@ class JobRequest extends Job implements ShouldQueue
      */
     public function failed(Exception $exception)
     {
-        if (!config('maia.debug_keep_files')) {
+        if (!config('abysses.debug_keep_files')) {
             $this->cleanup();
         }
 
@@ -142,7 +142,7 @@ class JobRequest extends Job implements ShouldQueue
      */
     protected function getTmpDirPath()
     {
-        return config('maia.tmp_dir')."/maia-{$this->jobId}";
+        return config('abysses.tmp_dir')."/abysses-{$this->jobId}";
     }
 
     /**
@@ -152,8 +152,8 @@ class JobRequest extends Job implements ShouldQueue
      */
     protected function dispatch(Job $job)
     {
-        Queue::connection(config('maia.response_connection'))
-            ->pushOn(config('maia.response_queue'), $job);
+        Queue::connection(config('abysses.response_connection'))
+            ->pushOn(config('abysses.response_queue'), $job);
     }
 
     /**
@@ -169,7 +169,7 @@ class JobRequest extends Job implements ShouldQueue
     {
         $code = 0;
         $lines = [];
-        $python = config('maia.python');
+        $python = config('abysses.python');
         $logFile = "{$this->tmpDir}/{$log}";
         exec("{$python} -u {$command} >{$logFile} 2>&1", $lines, $code);
 
@@ -189,17 +189,17 @@ class JobRequest extends Job implements ShouldQueue
      *
      * @return array
      */
-    protected function parseAnnotations($images)
+    protected function parseLabels($images)
     {
-        $annotations = [];
+        $labels = [];
         $isNull = 0;
 
         foreach ($images as $image) {
-            $newAnnotations = $this->parseAnnotationsFile($image);
-            if (is_null($newAnnotations)) {
+            $newLabels = $this->parseLabelsFile($image);
+            if (is_null($newLabels)) {
                 $isNull += 1;
             } else {
-                $annotations = array_merge($annotations, $newAnnotations);
+                $labels = array_merge($labels, $newLabels);
             }
         }
 
@@ -211,7 +211,7 @@ class JobRequest extends Job implements ShouldQueue
             throw new Exception('Unable to parse more than 10 % of the output JSON files.');
         }
 
-        return $annotations;
+        return $labels;
     }
 
     /**
@@ -221,7 +221,7 @@ class JobRequest extends Job implements ShouldQueue
      *
      * @return array
      */
-    protected function parseAnnotationsFile($image)
+    protected function parseLabelsFile($image)
     {
         $path = "{$this->tmpDir}/{$image->getId()}.json";
 
@@ -230,16 +230,16 @@ class JobRequest extends Job implements ShouldQueue
             return [];
         }
 
-        $annotations = json_decode(File::get($path), true);
+        $labels = json_decode(File::get($path), true);
 
-        if (is_array($annotations)) {
-            foreach ($annotations as &$annotation) {
-                array_unshift($annotation, $image->getId());
+        if (is_array($labels)) {
+            foreach ($labels as &$label) {
+                array_unshift($label, $image->getId());
             }
         }
 
-        // Each annotation is an array:
-        // [$imageId, $xCenter, $yCenter, $radius, $score]
-        return $annotations;
+        // Each label is an array:
+        // [$resnet18_v1, $restnet50_v1, resnet18_v2, resnet50_v2, vgg, xception]
+        return $labels;
     }
 }

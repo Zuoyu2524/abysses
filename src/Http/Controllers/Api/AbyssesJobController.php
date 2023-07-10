@@ -6,7 +6,7 @@ use Biigle\Http\Controllers\Api\Controller;
 use Biigle\Modules\abysses\Http\Requests\DestroyAbyssesJob;
 use Biigle\Modules\abysses\Http\Requests\StoreAbyssesJob;
 use Biigle\Modules\abysses\AbyssesJob;
-use Biigle\Modules\abysses\abyssesJobState as State;
+use Biigle\Modules\abysses\AbyssesJobState as State;
 use Biigle\Volume;
 use Queue;
 
@@ -58,7 +58,7 @@ class AbyssesJobController extends Controller
         // Assign this early so we can use the shouldUse* methods below.
         $job->params = $request->only($paramKeys);
         
-        if($type == "test") {
+        if($type === "test") {
             $job->state_id = State::labelRecognitionId();
             $paramKeys = array_merge($paramKeys, [
                 'kt_volume_id',
@@ -77,6 +77,9 @@ class AbyssesJobController extends Controller
         if ($this->isAutomatedRequest()) {
             return $job;
         }
+
+        echo($job->state_id);
+        echo($type);
 
         return $this->fuzzyRedirect('abysses', $job->id);
     }

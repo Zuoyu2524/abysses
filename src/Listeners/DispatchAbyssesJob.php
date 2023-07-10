@@ -1,50 +1,44 @@
 <?php
 
-namespace Biigle\Modules\Maia\Listeners;
+namespace Biigle\Modules\abysses\Listeners;
 
-use Biigle\Modules\Maia\Events\MaiaJobContinued;
-use Biigle\Modules\Maia\Events\MaiaJobCreated;
-use Biigle\Modules\Maia\Jobs\NoveltyDetectionFailure;
-use Biigle\Modules\Maia\Jobs\NoveltyDetectionRequest;
-use Biigle\Modules\Maia\Jobs\PrepareExistingAnnotations;
-use Biigle\Modules\Maia\Jobs\PrepareKnowledgeTransfer;
+use Biigle\Modules\abysses\Events\AbyssesJobContinued;
+use Biigle\Modules\abysses\Events\AbyssesJobCreated;
+use Biigle\Modules\abysses\Jobs\LabelRecognitionFailure;
+use Biigle\Modules\abysses\Jobs\LabelRecognitionRequest;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Queue;
 
-class DispatchMaiaJob implements ShouldQueue
+class DispatchAbyssesJob implements ShouldQueue
 {
     /**
       * Handle the event.
       *
-      * @param  MaiaJobCreated  $event
+      * @param  AbyssesJobCreated  $event
       * @return void
       */
-    public function handle(MaiaJobCreated $event)
+    public function handle(AbyssesJobCreated $event)
     {
-        if ($event->job->shouldUseNoveltyDetection()) {
-            $request = new NoveltyDetectionRequest($event->job);
-            Queue::connection(config('maia.request_connection'))
-                ->pushOn(config('maia.request_queue'), $request);
-        } elseif ($event->job->shouldUseExistingAnnotations()) {
-            PrepareExistingAnnotations::dispatch($event->job);
-        } elseif ($event->job->shouldUseKnowledgeTransfer()) {
-            PrepareKnowledgeTransfer::dispatch($event->job);
-        } else {
+        if ($event->job->requiresAction()) {
             throw new Exception('Unknown training data method.');
+        }  else {
+            $request = new LabelRecognitionRequest($event->job);
+            Queue::connection(config('abysses.request_connection'))
+                ->pushOn(config('abysses.request_queue'), $request);
         }
     }
 
     /**
      * Handle a job failure.
      *
-     * @param  MaiaJobCreated  $event
+     * @param  AbyssesJobCreated  $event
      * @param  \Exception  $exception
      * @return void
      */
-    public function failed(MaiaJobCreated $event, $exception)
+    public function failed(AbyssesJobCreated $event, $exception)
     {
-        $e = new Exception('The MAIA job could not be submitted.');
-        Queue::push(new NoveltyDetectionFailure($event->job->id, $e));
+        $e = new Exception('The Abysses job could not be submitted.');
+        Queue::push(new LabelRecognitionFailure($event->job->id, $e));
     }
 }

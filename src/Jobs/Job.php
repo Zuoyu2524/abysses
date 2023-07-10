@@ -1,6 +1,6 @@
 <?php
 
-namespace Biigle\Modules\Maia\Jobs;
+namespace Biigle\Modules\abysses\Jobs;
 
 use Illuminate\Bus\Queueable;
 

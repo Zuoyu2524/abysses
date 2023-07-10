@@ -45,7 +45,7 @@ return [
     'tmp_dir' => env('ABYSSES_TMP_DIR', storage_path('abysses_jobs')),
 
     /*
-    | Keep the temporary files of a MAIA job in case of a failure.
+    | Keep the temporary files of a Abysses job in case of a failure.
     | For debugging purposes only.
     */
     'debug_keep_files' => env('ABYSSES_DEBUG_KEEP_FILES', false),
@@ -53,7 +53,7 @@ return [
     /*
     | Path to the Python executable.
     */
-    'python' => env('ABYSSES_PYTHON', '/usr/bin/python3'),
+    'python' => env('MAIA_PYTHON', '/usr/bin/python3'),,
 
     /*
     | Number of worker threads to use during novelty detection or object detection.
@@ -64,27 +64,12 @@ return [
     /*
     | Path to the novelty detection script.
     */
-    'label_recognition_script' => __DIR__.'/../resources/scripts/recognition/TestRunner.py',
-
-    /*
-    | Path to the script that generates the training dataset for MMDetection.
-    */
-    'dataset_script' => __DIR__.'/../resources/scripts/recognition/Dataset.py',
-
-    /*
-    | Path to the script that trains the MMDetection model.
-    */
-    'label_training_script' => __DIR__.'/../resources/scripts/recognition/TrainingRunner.py',
-
-    /*
-    | Path to the MMDetection base config file.
-    */
-    'base_config' => __DIR__.'/../resources/scripts/recognition/Model.py',
+    'label_recognition_script' => __DIR__.'/../resources/scripts/test/test.py',
 
     /*
     | Path to download the pretrained weights of checkpoints.
     */
-    'ckp_model' => env('CKP_MODEL', 'https://download.pytorch.org/models/resnet50-11ad3fa6.pth'),
+    'ckp_model' => __DIR__.'/../resources/scripts/test/dogcat_model_bak.h5',
 
     /*
     | Number of 512x512 px images in a training batch of MMDetection.

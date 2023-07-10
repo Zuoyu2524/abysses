@@ -24,8 +24,4 @@ export default Vue.resource('api/v1/abysses-jobs{/id}', {}, {
         method: 'POST',
         url: 'api/v1/volumes{/id}/abysses-jobs',
     },
-    getTrainingProposals: {
-        method: 'GET',
-        url: 'api/v1/abysses-jobs{/id}/training-proposals',
-    },
 });

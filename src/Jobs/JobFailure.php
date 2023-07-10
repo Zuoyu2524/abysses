@@ -1,8 +1,8 @@
 <?php
 
-namespace Biigle\Modules\Maia\Jobs;
+namespace Biigle\Modules\abysses\Jobs;
 
-use Biigle\Modules\Maia\MaiaJob;
+use Biigle\Modules\abysses\AbyssesJob;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Log;
@@ -14,7 +14,7 @@ use Log;
 class JobFailure extends Job implements ShouldQueue
 {
     /**
-     * ID of the MAIA job.
+     * ID of the abysses job.
      *
      * @var int
      */
@@ -44,20 +44,20 @@ class JobFailure extends Job implements ShouldQueue
      */
     public function handle()
     {
-        $job = MaiaJob::find($this->jobId);
+        $job = AbyssesJob::find($this->jobId);
         $job->error = ['message' => $this->message];
         $this->updateJobState($job);
         $job->save();
         $this->sendNotification($job);
-        Log::error("MAIA job {$job->id} failed!");
+        Log::error("Abysses job {$job->id} failed!");
     }
 
     /**
      * Set the job to a failed state.
      *
-     * @param MaiaJob $job
+     * @param AbyssesJob $job
      */
-    protected function updateJobState(MaiaJob $job)
+    protected function updateJobState(AbyssesJob $job)
     {
         //
     }
@@ -65,9 +65,9 @@ class JobFailure extends Job implements ShouldQueue
     /**
      * Send the notification about the failure to the creator of the job.
      *
-     * @param MaiaJob $job
+     * @param AbyssesJob $job
      */
-    protected function sendNotification(MaiaJob $job)
+    protected function sendNotification(AbyssesJob $job)
     {
         //
     }

@@ -12,14 +12,14 @@ class AbyssesJobContinued
     /**
      * The job that caused this event.
      *
-     * @var MaiaJob
+     * @var AbyssesJob
      */
     public $job;
 
     /**
      * Create a new instance
      *
-     * @param MaiaJob $job
+     * @param AbyssesJob $job
      */
     public function __construct(AbyssesJob $job)
     {

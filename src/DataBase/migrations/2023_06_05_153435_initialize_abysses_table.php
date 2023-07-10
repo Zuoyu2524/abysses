@@ -31,6 +31,7 @@ return new class extends Migration
             ['name' => 'failed-label-recognition'],
             ['name' => 'retraining-proposals'],
             ['name' => 'failed-retraining-proposals'],
+            ['name' => 'success'],
         ]);
 
         

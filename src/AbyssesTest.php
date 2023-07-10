@@ -23,6 +23,10 @@ class AbyssesTest extends Model
         'is_train' => 'boolean',
     ];
 
+    protected $attributes = [
+        'is_train' => false, 
+    ];
+
     
     protected static function newFactory()
     {

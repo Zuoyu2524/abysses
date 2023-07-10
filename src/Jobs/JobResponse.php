@@ -1,22 +1,21 @@
 <?php
 
-namespace Biigle\Modules\Maia\Jobs;
+namespace Biigle\Modules\abysses\Jobs;
 
 use Biigle\Modules\Largo\Jobs\GenerateImageAnnotationPatch;
-use Biigle\Modules\Maia\MaiaAnnotation;
-use Biigle\Modules\Maia\MaiaJob;
+use Biigle\Modules\abysses\AbyssesTest;
+use Biigle\Modules\abysses\AbyssesJob;
 use Biigle\Shape;
 use DB;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
- * This job is executed on the machine running BIIGLE to store the results of novelty
- * detection or object detection.
+ * This job is executed on the machine running BIIGLE to store the results of label recognition
  */
 class JobResponse extends Job implements ShouldQueue
 {
     /**
-     * ID of the MAIA job.
+     * ID of the Abysses job.
      *
      * @var int
      */
@@ -33,18 +32,18 @@ class JobResponse extends Job implements ShouldQueue
      *
      * @var array
      */
-    public $annotations;
+    public $labels;
 
     /**
      * Create a new instance
      *
      * @param int $jobId
-     * @param array $annotations
+     * @param array $labels
      */
-    public function __construct($jobId, $annotations)
+    public function __construct($jobId, $labels)
     {
         $this->jobId = $jobId;
-        $this->annotations = $annotations;
+        $this->labels = $labels;
     }
 
     /**
@@ -52,7 +51,7 @@ class JobResponse extends Job implements ShouldQueue
      */
     public function handle()
     {
-        $job = MaiaJob::where('state_id', $this->getExpectedJobStateId())
+        $job = AbyssesJob::where('state_id', $this->getExpectedJobStateId())
             ->find($this->jobId);
         if ($job === null) {
             // Ignore the results if the job no longer exists for some reason.
@@ -61,29 +60,28 @@ class JobResponse extends Job implements ShouldQueue
 
         // Make sure to roll back any DB modifications if an error occurs.
         DB::transaction(function () use ($job) {
-            $this->createMaiaAnnotations();
+            $this->createAbyssesTest();
             $this->updateJobState($job);
         });
 
-        $this->dispatchAnnotationPatchJobs($job);
         $this->sendNotification($job);
     }
 
     /**
-     * Create MAIA annotations from the training proposals.
+     * Create abysses annotations from the training proposals.
      */
-    protected function createMaiaAnnotations()
+    protected function createAbyssesTests()
     {
-        $maiaAnnotations = array_map(function ($annotation) {
-            return $this->createMaiaAnnotation($annotation);
-        }, $this->annotations);
+        $abyssesLabels = array_map(function ($label) {
+            return $this->createAbyssesTest($label);
+        }, $this->labels);
 
         // Chunk the insert because PDO's maximum number of query parameters is
         // 65535. Each annotation has 7 parameters so we can store roughly 9000
         // annotations in one call.
-        $maiaAnnotations = array_chunk($maiaAnnotations, 9000);
-        array_walk($maiaAnnotations, function ($chunk) {
-            $this->insertAnnotationChunk($chunk);
+        $abysseslabels = array_chunk($abyssesLabels, 9000);
+        array_walk($abysseslabels, function ($chunk) {
+            $this->insertLabelChunk($chunk);
         });
     }
 
@@ -100,22 +98,16 @@ class JobResponse extends Job implements ShouldQueue
     /**
      * Create an insert array for a MAIA annotation.
      *
-     * @param array $annotation
+     * @param array $label
      *
      * @return array
      */
-    protected function createMaiaAnnotation($annotation)
+    protected function createAbyssesTest($label)
     {
-        $points = array_map(function ($coordinate) {
-            return round($coordinate, 2);
-        }, [$annotation[1], $annotation[2], $annotation[3]]);
-
         return [
             'job_id' => $this->jobId,
-            'points' => json_encode($points),
-            'score' => $annotation[4],
             'image_id' => $annotation[0],
-            'shape_id' => Shape::circleId(),
+            'label' => $label
         ];
     }
 
@@ -124,44 +116,28 @@ class JobResponse extends Job implements ShouldQueue
      *
      * @param array $chunk
      */
-    protected function insertAnnotationChunk(array $chunk)
+    protected function insertLabelChunk(array $chunk)
     {
         //
     }
 
     /**
-     * Dispatches the jobs to generate annotation patches for the MAIA annotations.
-     *
-     * @param MaiaJob $job
-     */
-    protected function dispatchAnnotationPatchJobs(MaiaJob $job)
-    {
-        $disk = $this->getPatchStorageDisk();
-        $this->getCreatedAnnotations($job)->chunkById(1000, function ($chunk) use ($disk) {
-            foreach ($chunk as $annotation) {
-                GenerateImageAnnotationPatch::dispatch($annotation, $disk)
-                    ->onQueue(config('largo.generate_annotation_patch_queue'));
-            }
-        });
-    }
-
-    /**
      * Get a query for the annotations that have been created by this job.
      *
-     * @param MaiaJob $job
+     * @param AbyssesJob $job
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    protected function getCreatedAnnotations(MaiaJob $job)
+    protected function getCreatedLabels(AbyssesJob $job)
     {
-        return $job->annotations();
+        return $job->labels();
     }
 
     /**
-     * Update the state of the MAIA job after processing the response.
+     * Update the state of the Abysses job after processing the response.
      *
-     * @param MaiaJob $job
+     * @param AbyssesJob $job
      */
-    protected function updateJobState(MaiaJob $job)
+    protected function updateJobState(AbyssesJob $job)
     {
         //
     }
@@ -169,9 +145,9 @@ class JobResponse extends Job implements ShouldQueue
     /**
      * Send the notification about the completion to the creator of the job.
      *
-     * @param MaiaJob $job
+     * @param AbyssesJob $job
      */
-    protected function sendNotification(MaiaJob $job)
+    protected function sendNotification(AbyssesJob $job)
     {
         //
     }
