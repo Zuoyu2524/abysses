@@ -53,7 +53,7 @@ return [
     /*
     | Path to the Python executable.
     */
-    'python' => env('MAIA_PYTHON', '/usr/bin/python3'),,
+    'python' => env('ABYSSES_PYTHON', '/home/zhang/anaconda3/bin/python'),
 
     /*
     | Number of worker threads to use during novelty detection or object detection.
