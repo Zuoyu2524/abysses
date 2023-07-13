@@ -1,83 +1,90 @@
+import numpy as np
 import os
-import tensorflow as tf
-from tensorflow.keras.preprocessing.image import ImageDataGenerator 
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Flatten
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.callbacks import TensorBoard
-from tensorflow.keras.models import load_model
+import json
+import sys
+from PIL import Image
+from concurrent.futures import ThreadPoolExecutor, wait
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from ImageCollection import ImageCollection
+
+
+"""class DetectionRunner(object):
+
+    def __init__(self, params):
+        # Dict of image IDs and file paths to the images to process.
+        self.images = params['images']
+        # Path to the directory to store temporary files.
+        self.tmp_dir = params['tmp_dir']
+
+    def postprocess_map(self, image, threshold):
+        saliency_map = np.load(self.image_path(image, 'npy'))
+        binary_map = np.where(saliency_map > threshold, 255, 0).astype(np.uint8)
+        mask = np.zeros_like(binary_map)
+        points = []
+
+        with open(self.image_path(image, 'json'), 'w') as outfile:
+            json.dump(points, outfile)
+        os.remove(self.image_path(image, 'npy'))
+
+    def process_cluster(self, cluster):
+
+        for i, image in enumerate(cluster):
+            np.save(self.image_path(image, 'npy'), image)
+
+        return 0
+
+    def run(self):
+        full_executor = ThreadPoolExecutor(max_workers=1)
+
+        images = ImageCollection(self.images, executor=full_executor)
+        images.prune_corrupt_images()
+        total_images = len(images)
+
+        if total_images == 0:
+            print('No image files to process.')
+        
+        clusters = [images]
+
+        jobs = []
+
+        post_executor = full_executor
+
+        for i, cluster in enumerate(clusters):
+            threshold = self.process_cluster(cluster)
+            jobs.extend([post_executor.submit(self.postprocess_map, image, threshold) for image in cluster])
+
+        wait(jobs)
+
+
+    def image_path(self, image, suffix):
+        return '{}/{}.{}'.format(self.tmp_dir, image.id, suffix)
+
 
 with open(sys.argv[1]) as f:
     params = json.load(f)
-num_classes = 2
-tmp_dir = params['tmp_dir']
-images = params['images']
-ckp_model = params['ckp_model']
 
-image_ids = []
-image_paths = []
-for key, value in d.items():
-    image_paths.append(value)
-    image_ids.append(id)
 
-datagen = ImageDataGenerator(
-    rescale=1./255,
-    shear_range=0.2,
-    zoom_range=0.2,
-    horizontal_flip=True
-)
 
-def image_label_generator(image_paths, batch_size):
-    num_samples = len(image_paths)
-    while True:
-        for offset in range(0, num_samples, batch_size):
-            batch_image_paths = image_paths[offset:offset+batch_size]
-            
-            # 加载和增强图像
-            batch_images = []
-            for image_path in batch_image_paths:
-                image = tf.keras.preprocessing.image.load_img(image_path, target_size=(64, 64))
-                image = tf.keras.preprocessing.image.img_to_array(image)
-                image = datagen.random_transform(image)
-                image = datagen.standardize(image)
-                batch_images.append(image)
-            
-            # 将图像和标签转换为数组
-            batch_images = tf.stack(batch_images)
-            
-            yield batch_images
+runner = DetectionRunner(params)
+runner.run()"""
 
-test_generator = image_label_generator(image_paths, 16)
+def run():
+    full_executor = ThreadPoolExecutor(max_workers=1)
+    with open(sys.argv[1]) as f:
+        params = json.load(f)
 
-# generate test data
-test_images = next(test_generator)
+    images = params['images']
+    labels = []
 
-#define the model
-classifier = Sequential()
-classifier.add(Conv2D(32,(3,3),input_shape=(64,64,3),activation='relu'))
-classifier.add(MaxPooling2D(pool_size=(2,2),strides=2))
-classifier.add(Conv2D(32,(3,3),activation='relu'))
-classifier.add(MaxPooling2D(pool_size=(2,2),strides=2))
-classifier.add(Flatten())
-classifier.add(Dense(units=128,activation='relu'))
-classifier.add(Dense(units=1,activation='sigmoid'))
+    tmp_dir = params['tmp_dir']
+    jobs = []
 
-adam = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, amsgrad=False)
-#classifier.compile(optimizer=adam, loss='binary_crossentropy', metrics=['accuracy'])
+    for i, image in enumerate(images):
+        jobs.extend([full_executor.submit(image)])
+        wait(jobs)
+        image_path = '{}/{}.{}'.format(tmp_dir, image, 'json')
+        with open(image_path, 'w') as outfile:
+                json.dump(image, outfile)
+    return "success"
 
-classifier = load_model(ckp_model)
-
-# prediction
-predictions = classifier.predict(test_images)
-
-class_labels = ['cat', 'dog']
-
-labels = [class_labels[int(np.round(pred))] for pred in predictions]
-
-def image_path(tmp_dir, image, suffix):
-    return '{}/{}.{}'.format(tmp_dir, image.keys, suffix)
-
-with open(self.image_path(tmp_dir, image, 'json'), 'w') as outfile:
-            json.dump(labels, outfile)
+run()

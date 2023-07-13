@@ -7,7 +7,7 @@
             </span>
         </div>
         <p class="text-success text-center lead">
-            This job is finished.<br>Review the labels <i class="fas fa-check-square"></i> to create the your annotations.
+            This job is finished.<br>Review the labels <i class="fas fa-check-square"></i> and download your results.
         </p>
     @elseif ($job->hasFailed())
         <div class="abysses-status abysses-status--failed">

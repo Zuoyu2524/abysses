@@ -13,6 +13,11 @@ $router->group([
         'as' => 'abysses',
         'uses' => 'AbyssesJobController@show',
     ]);
+
+    $router->get('abysses/{id}/data', [
+        'as' => 'abysses-data',
+        'uses' => 'AbyssesJobController@data',
+    ]);
 });
 
 $router->group([

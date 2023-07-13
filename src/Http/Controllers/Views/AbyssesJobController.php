@@ -31,7 +31,7 @@ class AbyssesJobController extends Controller
     public function index(Request $request, $id)
     {
         
-        //AbyssesJob::where('volume_id', $id)->delete();
+        AbyssesJob::where('volume_id', $id)->delete();
         $volume = Volume::findOrFail($id);
         if (!$request->user()->can('sudo')) {
             $this->authorize('edit-in', $volume);
@@ -150,6 +150,21 @@ class AbyssesJobController extends Controller
             'trees',
             'tpUrlTemplate',
             'tpLimit'
+        ));
+    }
+
+    public function data(Request $request, $id)
+    {
+        $job = AbyssesJob::findOrFail($id);
+        $this->authorize('access', $job);
+        $volume = $job->volume;
+        $states = State::pluck('id', 'name');
+
+        
+        return view('abysses::data', compact(
+            'job',
+            'volume',
+            'states',
         ));
     }
 

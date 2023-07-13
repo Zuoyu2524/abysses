@@ -173,8 +173,11 @@ class JobRequest extends Job implements ShouldQueue
         $logFile = "{$this->tmpDir}/{$log}";
         exec("{$python} -u {$command} >{$logFile} 2>&1", $lines, $code);
 
+        echo($code);
+
         if ($code !== 0) {
             $lines = File::get($logFile);
+            $echo(lines);
             throw new Exception("Error while executing python command '{$command}':\n{$lines}", $code);
         }
 
@@ -194,13 +197,18 @@ class JobRequest extends Job implements ShouldQueue
         $labels = [];
         $isNull = 0;
 
+        // This might happen for corrupt image files which are skipped.
+
         foreach ($images as $image) {
-            $newLabels = $this->parseLabelsFile($image);
+            $path = "{$this->tmpDir}/{$image->getId()}.json";
+            if (!File::exists($path)) {
+                throw new Exception("Error while executing python command '{$command}':\n{$lines}", $code);
+            }
+            $newLabels = json_decode(File::get($path), true);
             if (is_null($newLabels)) {
                 $isNull += 1;
-            } else {
-                $labels = array_merge($labels, $newLabels);
             }
+            $labels[] = $newLabels;
         }
 
         // For many images (as it is common) it might be not too bad if novelty detection
@@ -214,32 +222,4 @@ class JobRequest extends Job implements ShouldQueue
         return $labels;
     }
 
-    /**
-     * Parse the output JSON file of a single image.
-     *
-     * @param GenericImage $image
-     *
-     * @return array
-     */
-    protected function parseLabelsFile($image)
-    {
-        $path = "{$this->tmpDir}/{$image->getId()}.json";
-
-        // This might happen for corrupt image files which are skipped.
-        if (!File::exists($path)) {
-            return [];
-        }
-
-        $labels = json_decode(File::get($path), true);
-
-        if (is_array($labels)) {
-            foreach ($labels as &$label) {
-                array_unshift($label, $image->getId());
-            }
-        }
-
-        // Each label is an array:
-        // [$resnet18_v1, $restnet50_v1, resnet18_v2, resnet50_v2, vgg, xception]
-        return $labels;
-    }
 }
