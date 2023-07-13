@@ -22,7 +22,7 @@ class JobStateChanged extends Notification
      * @param AbyssesJob $job
      * @return void
      */
-    public function __construct(MaiaJob $job)
+    public function __construct(AbyssesJob $job)
     {
         $this->job = $job;
     }
