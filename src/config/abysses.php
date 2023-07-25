@@ -59,17 +59,12 @@ return [
     | Number of worker threads to use during novelty detection or object detection.
     | Set this to the number of available CPU cores.
     */
-    'max_workers' => env('ABYSSES_MAX_WORKERS', 2),
+    'max_workers' => env('ABYSSES_MAX_WORKERS', 1),
 
     /*
     | Path to the novelty detection script.
     */
-    'label_recognition_script' => __DIR__.'/../resources/scripts/test/test.py',
-
-    /*
-    | Path to download the pretrained weights of checkpoints.
-    */
-    'ckp_model' => __DIR__.'/../resources/scripts/test/dogcat_model_bak.h5',
+    'label_recognition_script' => __DIR__.'/../resources/scripts/recognition/Main.py',
 
     /*
     | Number of 512x512 px images in a training batch of MMDetection.

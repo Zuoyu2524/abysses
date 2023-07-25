@@ -60,7 +60,7 @@ class JobResponse extends Job implements ShouldQueue
 
         // Make sure to roll back any DB modifications if an error occurs.
         DB::transaction(function () use ($job) {
-            $this->createAbyssesTest();
+            $this->createAbyssesTests();
             $this->updateJobState($job);
         });
 
@@ -72,15 +72,15 @@ class JobResponse extends Job implements ShouldQueue
      */
     protected function createAbyssesTests()
     {
-        $abyssesLabels = array_map(function ($label) {
+        $labels = array_map(function ($label) {
             return $this->createAbyssesTest($label);
         }, $this->labels);
 
         // Chunk the insert because PDO's maximum number of query parameters is
         // 65535. Each annotation has 7 parameters so we can store roughly 9000
         // annotations in one call.
-        $abysseslabels = array_chunk($abyssesLabels, 9000);
-        array_walk($abysseslabels, function ($chunk) {
+        $labels = array_chunk($labels, 9000);
+        array_walk($labels, function ($chunk) {
             $this->insertLabelChunk($chunk);
         });
     }
@@ -106,8 +106,9 @@ class JobResponse extends Job implements ShouldQueue
     {
         return [
             'job_id' => $this->jobId,
-            'image_id' => $annotation[0],
-            'label' => $label
+            'image_id' => $label[0],
+            'label' => $label[1],
+            'is_train' => false,
         ];
     }
 

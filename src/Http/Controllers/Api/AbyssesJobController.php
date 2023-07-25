@@ -9,6 +9,7 @@ use Biigle\Modules\abysses\AbyssesJob;
 use Biigle\Modules\abysses\AbyssesJobState as State;
 use Biigle\Volume;
 use Queue;
+use Biigle\Modules\abysses\AbyssesTest;
 
 class AbyssesJobController extends Controller
 {
@@ -99,7 +100,9 @@ class AbyssesJobController extends Controller
      */
     public function destroy(DestroyAbyssesJob $request)
     {
+        $id = $request->job->id;
         $volumeId = $request->job->volume_id;
+        AbyssesTest::where('job_id', $id)->delete();
         $request->job->delete();
 
         if (!$this->isAutomatedRequest()) {

@@ -22,13 +22,6 @@ class JobRequest extends Job implements ShouldQueue
     protected $jobId;
 
     /**
-     * Parameters of the MAIA job.
-     *
-     * @var array
-     */
-    protected $jobParams;
-
-    /**
      * URL of the volume associated with the job.
      *
      * @var string
@@ -57,7 +50,6 @@ class JobRequest extends Job implements ShouldQueue
     public function __construct(AbyssesJob $job)
     {
         $this->jobId = $job->id;
-        $this->jobParams = $job->params;
         $this->volumeUrl = $job->volume->url;
         $this->images = $job->volume->images()->pluck('filename', 'id')->toArray();
     }
@@ -173,31 +165,27 @@ class JobRequest extends Job implements ShouldQueue
         $logFile = "{$this->tmpDir}/{$log}";
         exec("{$python} -u {$command} >{$logFile} 2>&1", $lines, $code);
 
-        echo($code);
-
         if ($code !== 0) {
             $lines = File::get($logFile);
-            $echo(lines);
             throw new Exception("Error while executing python command '{$command}':\n{$lines}", $code);
-        }
+        } 
 
         return $logFile;
-    }
 
+    }
+    
 
     /**
-     * Parse the output JSON files to get the array of annotations for each image.
-     *
-     * @param array $images GenericImage instances.
-     *
-     * @return array
-     */
+    * Parse the output JSON files to get the array of annotations for each image.
+    *
+    * @param array $images GenericImage instances.
+    *
+    * @return array
+    */
     protected function parseLabels($images)
     {
         $labels = [];
         $isNull = 0;
-
-        // This might happen for corrupt image files which are skipped.
 
         foreach ($images as $image) {
             $path = "{$this->tmpDir}/{$image->getId()}.json";
@@ -205,21 +193,11 @@ class JobRequest extends Job implements ShouldQueue
                 throw new Exception("Error while executing python command '{$command}':\n{$lines}", $code);
             }
             $newLabels = json_decode(File::get($path), true);
-            if (is_null($newLabels)) {
-                $isNull += 1;
-            }
             $labels[] = $newLabels;
-        }
-
-        // For many images (as it is common) it might be not too bad if novelty detection
-        // failed for some of them. We still get enough training proposals and don't want
-        // to execute the long running novelty detection again. But if too many images
-        // failed, abort.
-        if (($isNull / count($images)) > 0.1) {
-            throw new Exception('Unable to parse more than 10 % of the output JSON files.');
         }
 
         return $labels;
     }
+
 
 }

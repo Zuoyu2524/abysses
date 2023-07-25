@@ -14,10 +14,16 @@
             @if ($job->state_id === $states['label-recognition'])
                 <button class="btn btn-danger" type="button" title="The job cannot be deleted while the label recognition is running" disabled>Delete this job</button>
             {{-- The array key is instance-segmentation for legacy reasons --}}
-            @elseif ($job->state_id === $states['success'])
-                <button class="btn btn-danger" type="button">Download results</button>
             @else
                 <button class="btn btn-danger" type="submit">Delete this job</button>
+            @endif
+        </form>
+    </div>
+    <div class="abysses-tab-content__bottom">
+        <form class="text-right" action="{{ route('abysses-download', ['jobId' => $job->id]) }}" method="POST">
+            @csrf
+            @if ($job->state_id === $states['success'])
+                <button class="btn btn-danger" type="submit">Download results</button>
             @endif
         </form>
     </div>

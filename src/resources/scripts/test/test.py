@@ -1,4 +1,4 @@
-import numpy as np
+"""import numpy as np
 import os
 import json
 import sys
@@ -8,7 +8,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from ImageCollection import ImageCollection
 
 
-"""class DetectionRunner(object):
+class DetectionRunner(object):
 
     def __init__(self, params):
         # Dict of image IDs and file paths to the images to process.
@@ -68,23 +68,44 @@ with open(sys.argv[1]) as f:
 runner = DetectionRunner(params)
 runner.run()"""
 
+import logging
+from concurrent.futures import ThreadPoolExecutor, wait
+import json
+import sys
+import tensorflow as tf
+
 def run():
+    # Configure logging
+    #log_file = 'log.txt'
+    #logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
     full_executor = ThreadPoolExecutor(max_workers=1)
-    with open(sys.argv[1]) as f:
-        params = json.load(f)
+    try:
+        with open(sys.argv[1]) as f:
+            params = json.load(f)
 
-    images = params['images']
-    labels = []
+        images = params['images']
+        labels = []
 
-    tmp_dir = params['tmp_dir']
-    jobs = []
+        tmp_dir = params['tmp_dir']
+        jobs = []
 
-    for i, image in enumerate(images):
-        jobs.extend([full_executor.submit(image)])
-        wait(jobs)
-        image_path = '{}/{}.{}'.format(tmp_dir, image, 'json')
-        with open(image_path, 'w') as outfile:
-                json.dump(image, outfile)
-    return "success"
+        print(images)
+        for i, image in enumerate(images):
+            jobs.extend([full_executor.submit(image)])
+            wait(jobs)
+            image_path = '{}/{}.{}'.format(tmp_dir, image, 'json')
+            print(type(image))
+            labels = [int(image), 'dogs']
+            with open(image_path, 'w') as outfile:
+                json.dump(labels, outfile)
+        print("success")
+        #logging.info("Success")  # Log success message
+        return "success"
 
-run()
+    except Exception as e:
+        logging.error(f"Error: {str(e)}")  # Log error message
+        raise e
+
+results = run()
+

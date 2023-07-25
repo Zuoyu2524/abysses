@@ -59,7 +59,6 @@ class LabelRecognitionRequest extends JobRequest
             'images' => $imagesMap,
             'tmp_dir' => $this->tmpDir,
             'max_workers' => intval(config('abysses.max_workers')),
-            'ckp_model' => intval(config('abysses.ckp_model'))
         ];
 
         File::put($path, json_encode($content, JSON_UNESCAPED_SLASHES));

@@ -31,7 +31,7 @@ class AbyssesJobController extends Controller
     public function index(Request $request, $id)
     {
         
-        AbyssesJob::where('volume_id', $id)->delete();
+        //AbyssesJob::where('volume_id', $id)->delete();
         $volume = Volume::findOrFail($id);
         if (!$request->user()->can('sudo')) {
             $this->authorize('edit-in', $volume);

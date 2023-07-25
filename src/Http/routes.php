@@ -36,5 +36,7 @@ $router->group([
     ]);
 
     $router->post('abysses-jobs/{id}/test', 'TestController@index')->name('job-test');
+    $router->post('/abysses-jobs/{jobId}/download', 'FileController@downloadFile')->name('abysses-download');
+
 
 });
